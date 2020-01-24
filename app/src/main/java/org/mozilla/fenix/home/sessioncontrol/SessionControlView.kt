@@ -8,6 +8,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -133,27 +134,32 @@ class SessionControlView(
 ) : LayoutContainer {
     override val containerView: View?
         get() = container
-
-    val view: RecyclerView = LayoutInflater.from(container.context)
-        .inflate(R.layout.component_session_control, container, true)
-        .findViewById(R.id.home_component)
+    private val mInteractor = interactor
 
     private val sessionControlAdapter = SessionControlAdapter(interactor)
+    lateinit var view: RecyclerView
 
-    init {
-        view.apply {
-            adapter = sessionControlAdapter
-            layoutManager = LinearLayoutManager(container.context)
-            val itemTouchHelper =
-                ItemTouchHelper(
-                    SwipeToDeleteCallback(
-                        interactor
-                    )
-                )
-            itemTouchHelper.attachToRecyclerView(this)
+    fun loadAsync(action: View.() -> Unit) {
+        AsyncLayoutInflater(container.context).inflate(R.layout.component_session_control, container) { finalView, _, parent ->
+            view = finalView as RecyclerView
+            with(parent!!) {
+                addView(finalView)
+                finalView.apply {
+                    finalView.adapter = sessionControlAdapter
+                    layoutManager = LinearLayoutManager(container.context)
+                    val itemTouchHelper =
+                        ItemTouchHelper(
+                            SwipeToDeleteCallback(
+                                this@SessionControlView.mInteractor
+                            )
+                        )
+                    itemTouchHelper.attachToRecyclerView(this)
 
-            view.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
-                update(it)
+                    finalView.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+                        this@SessionControlView.update(it)
+                    }
+                }
+                action()
             }
         }
     }

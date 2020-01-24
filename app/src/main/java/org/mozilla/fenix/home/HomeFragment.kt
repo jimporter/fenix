@@ -200,18 +200,20 @@ class HomeFragment : Fragment() {
 
         sessionControlView = SessionControlView(homeFragmentStore, view.homeLayout, sessionControlInteractor)
 
-        ConstraintSet().apply {
-            clone(view.homeLayout)
-            connect(sessionControlView.view.id, TOP, view.wordmark.id, BOTTOM)
-            connect(sessionControlView.view.id, START, PARENT_ID, START)
-            connect(sessionControlView.view.id, END, PARENT_ID, END)
-            connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
-            applyTo(view.homeLayout)
-        }
+        sessionControlView.loadAsync {
+            ConstraintSet().apply {
+                clone(view.homeLayout)
+                connect(sessionControlView.view.id, TOP, view.wordmark.id, BOTTOM)
+                connect(sessionControlView.view.id, START, PARENT_ID, START)
+                connect(sessionControlView.view.id, END, PARENT_ID, END)
+                connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
+                applyTo(view.homeLayout)
+            }
 
-        @Suppress("MagicNumber") // we need constants if we define layouts in code.
-        sessionControlView.view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            topMargin = 32.dpToPx(resources.displayMetrics)
+            @Suppress("MagicNumber") // we need constants if we define layouts in code.
+            sessionControlView.view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = 32.dpToPx(resources.displayMetrics)
+            }
         }
 
         activity.themeManager.applyStatusBarTheme(activity)
